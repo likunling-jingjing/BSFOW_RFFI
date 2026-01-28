@@ -22,7 +22,7 @@ The project is organized as follows:
 │   ├── ETF_classifier.py   # IO-ETF head implementation
 │   └── resnet.py           # Backbone 
 ├── utils/                  # Utilities
-│   ├── evaluate_utils.py   # Metrics: H-score, AUROC, Hungarian matching
+│   ├── evaluate_utils.py   # Hungarian matching
 │   ├── losses.py           # Losses for TLGA
 │   ├── sinkhorn_knopp.py   # Sinkhorn-Knopp (balanced OT)
 │   └── utils.py            # General helpers
