@@ -105,6 +105,43 @@ def align_new_classes_to_etf(model, data_loader, args):
         model.classifier_new.ori_M[:, args.no_known:].data.copy_(new_etf_block)
 
 
+def calc_rapr_loss(logits, logits_old, args):
+    probs_old = torch.softmax(logits_old, dim=1)
+    max_prob_old, target_old_pl = torch.max(probs_old, dim=1)
+    
+    reliable_indices = []
+    
+    for k in range(args.no_known):
+        idx_k = (target_old_pl == k).nonzero(as_tuple=True)[0]
+        
+        if len(idx_k) == 0:
+            continue
+            
+        probs_k = max_prob_old[idx_k]
+        
+        mask_thresh = probs_k >= args.confidence_thresh
+        idx_k_thresh = idx_k[mask_thresh]
+        probs_k_thresh = probs_k[mask_thresh]
+        
+        if len(idx_k_thresh) == 0:
+            continue
+            
+        k_count = len(idx_k_thresh)
+        top_k_num = max(1, int(k_count * args.retention_ratio))
+        
+        _, topk_local_indices = torch.topk(probs_k_thresh, k=top_k_num)
+        
+        final_idx_k = idx_k_thresh[topk_local_indices]
+        reliable_indices.append(final_idx_k)
+
+    if len(reliable_indices) > 0:
+        reliable_indices = torch.cat(reliable_indices)
+        loss_ret = F.cross_entropy(logits[reliable_indices], target_old_pl[reliable_indices])
+        return loss_ret
+    else:
+        return torch.tensor(0.0).cuda()
+
+
 def train_epoch(args, unlbl_loader, model, old_model, optimizer, ema_optimizer, scheduler, epoch, sinkhorn, train_stat):
     losses = AverageMeter()
     
@@ -127,15 +164,7 @@ def train_epoch(args, unlbl_loader, model, old_model, optimizer, ema_optimizer, 
         with torch.no_grad():
             _, logits_old, _, _, _ = old_model(inputs)
 
-        probs_old = torch.softmax(logits_old, dim=1)
-        max_prob_old, target_old_pl = torch.max(probs_old, dim=1)
-        
-        mask_reliable = (max_prob_old > 0.75) & (target_old_pl < args.no_known)
-        
-        if mask_reliable.sum() > 0:
-            loss_ret = F.cross_entropy(logits[mask_reliable], target_old_pl[mask_reliable])
-        else:
-            loss_ret = torch.tensor(0.0).cuda()
+        loss_ret = calc_rapr_loss(logits, logits_old, args)
 
         logits = de_interleave(logits, 2)
         logits_u_w, logits_u_s = logits.chunk(2)
@@ -148,6 +177,7 @@ def train_epoch(args, unlbl_loader, model, old_model, optimizer, ema_optimizer, 
         feat_con_u_w, _ = feat_con.chunk(2)
         
         train_stat['feature_con_bank'][index_u] = feat_con_u_w.detach().clone()
+        
         with torch.no_grad():
             cosine_corr = torch.matmul(feat_con_u_w, train_stat['feature_con_bank'].T)
             _, knn_index = torch.topk(cosine_corr, k=args.chosen_neighbors, dim=-1, largest=True)
@@ -161,7 +191,7 @@ def train_epoch(args, unlbl_loader, model, old_model, optimizer, ema_optimizer, 
         loss_global = F.cross_entropy(logits_u_s / args.temparature, targets_u_pl)
 
         loss_align = w_t * loss_global + (1 - w_t) * loss_local
-        final_loss = loss_align + 20.0 * loss_ret
+        final_loss = loss_align + args.lambda_old * loss_ret
         
         losses.update(final_loss.item(), batch_u)
         
@@ -215,7 +245,6 @@ def main():
     parser.add_argument('--stage1-ckpt', default='./checkpoints/stage1_best.pth', type=str)
 
     parser.add_argument('--no-class', default=10, type=int)
-    parser.add_argument('--lbl-percent', type=int, default=50)
     parser.add_argument('--novel-percent', default=50, type=int)
     
     parser.add_argument('--epochs', default=50, type=int)
@@ -225,11 +254,16 @@ def main():
     parser.add_argument('--warmup', default=15, type=int)
     parser.add_argument('--temparature', default=0.3, type=float)
     parser.add_argument('--chosen_neighbors', default=100, type=int)
-    parser.add_argument('--rho', default='0.3,0.9', type=str)
-    parser.add_argument('--rff-method', default='spectrogram', type=str)
+    
+    parser.add_argument('--confidence-thresh', default=0.6, type=float)
+    parser.add_argument('--retention-ratio', default=0.5, type=float)
+    parser.add_argument('--lambda-old', default=20.0, type=float)
     
     parser.add_argument('--resume', default='', type=str)
     parser.add_argument('--no-progress', action='store_true')
+    
+    parser.add_argument('--rho', default='0.3,0.9', type=str)
+    parser.add_argument('--rff-method', default='spectrogram', type=str)
 
     args = parser.parse_args()
     
@@ -288,7 +322,7 @@ def main():
     for param in old_model.parameters():
         param.requires_grad = False
 
-    align_new_classes_to_etf(model, unlbl_loader, args)
+    align_new_classes_to_etf(model, pl_loader, args)
 
     ema_optimizer = WeightEMA(0.95, model, ema_model)
     sinkhorn = SinkhornKnopp(num_iters_sk=3, epsilon_sk=0.05, imb_factor=1)
@@ -327,7 +361,7 @@ def main():
                 'acc': acc_all,
             }
             torch.save(save_dict, final_ckpt_path)
-            print(f"  --> New Best Saved: {acc_all:.2f}%")
+            print(f" --> New Best Saved: {acc_all:.2f}%")
 
     ckpt = torch.load(final_ckpt_path)
     model.load_state_dict(ckpt['state_dict'], strict=False)
