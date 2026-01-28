@@ -10,7 +10,7 @@ We propose a framework to address the **Source-Free Open-World (SF-OW)** problem
 
 
 
-## �� Project Structure
+## 📂 Project Structure
 
 The project is organized as follows:
 
@@ -74,7 +74,7 @@ Please download the public datasets from their official sources and place them u
 ```
 *(Note: Ensure the dataset paths in the arguments match your local structure if different from default.)*
 
-## �� Usage
+## 🚀 Usage
 
 The framework consists of two stages. Below are the commands for all three benchmarks.
 
@@ -106,7 +106,7 @@ python SFOW_RFFI_stage_2.py --dataset wisig --rff-method spectrogram --no-progre
 python SFOW_RFFI_stage_2.py --dataset lora --rff-method spectrogram --no-progress --lbl-percent 10 --novel-percent 20 --epochs 100
 ```
 
-## �� Outputs
+## 📊 Outputs
 
 - **Logs:** Training logs, accuracy, H-score, and AUROC are saved in the `outputs/` directory.
 - **Checkpoints:** Model weights are saved automatically based on best performance.
