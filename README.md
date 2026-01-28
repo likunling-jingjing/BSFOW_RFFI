@@ -83,13 +83,13 @@ Train the model on old classes (Source) with labels.
 
 ```bash
 # Oracle
-python SFOW_RFFI_stage_1.py --dataset oracle --epochs 50 --tag quick_debug_oracle --no-class 10 --no-known 10
+python SFOW_RFFI_stage_1.py --dataset oracle --epochs 100 --tag quick_debug_oracle --no-class 10 --no-known 10
 
 # WiSig
-python SFOW_RFFI_stage_1.py --dataset wisig --epochs 50 --tag quick_debug_wisig --no-class 4 --no-known 4
+python SFOW_RFFI_stage_1.py --dataset wisig --epochs 100 --tag quick_debug_wisig --no-class 4 --no-known 4
 
 # LoRa
-python SFOW_RFFI_stage_1.py --dataset lora --epochs 10 --tag quick_debug_lora --no-class 20 --no-known 20
+python SFOW_RFFI_stage_1.py --dataset lora --epochs 100 --tag quick_debug_lora --no-class 20 --no-known 20
 ```
 
 ### Stage 2: SF-OW Adaptation 
@@ -97,13 +97,13 @@ Adapt to the mixed unlabeled stream (Old + New) without source data.
 
 ```bash
 # Oracle
-python SFOW_RFFI_stage_2.py --dataset oracle --rff-method spectrogram --no-progress --lbl-percent 10 --novel-percent 34 --epochs 100
+python SFOW_RFFI_stage_2.py --dataset oracle --rff-method spectrogram --no-progress --novel-percent 34 --epochs 100
 
 # WiSig
-python SFOW_RFFI_stage_2.py --dataset wisig --rff-method spectrogram --no-progress --lbl-percent 10 --novel-percent 40 --epochs 100
+python SFOW_RFFI_stage_2.py --dataset wisig --rff-method spectrogram --no-progress --novel-percent 40 --epochs 100
 
 # LoRa
-python SFOW_RFFI_stage_2.py --dataset lora --rff-method spectrogram --no-progress --lbl-percent 10 --novel-percent 20 --epochs 100
+python SFOW_RFFI_stage_2.py --dataset lora --rff-method spectrogram --no-progress --novel-percent 20 --epochs 100
 ```
 
 ## 📊 Outputs
