@@ -111,8 +111,6 @@ python SFOW_RFFI_stage_2.py --dataset lora --rff-method spectrogram --no-progres
 - **Logs:** Training logs, accuracy, H-score, and AUROC are saved in the `outputs/` directory.
 - **Checkpoints:** Model weights are saved automatically based on best performance.
 
-## ⚠️ Anonymity Note
-This code is submitted for double-blind review. All author details have been removed.
 
 
 
