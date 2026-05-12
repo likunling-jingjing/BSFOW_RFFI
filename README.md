@@ -1,6 +1,6 @@
 # Source-Free Open-World RF Fingerprint Identification
 
-This repository contains an **anonymous** PyTorch implementation of the paper: **"Source-Free Open-World RF Fingerprint Identification"**.
+This repository contains the PyTorch implementation of the paper: **"Source-Free Open-World RF Fingerprint Identification"**.
 
 ## Overview
 
