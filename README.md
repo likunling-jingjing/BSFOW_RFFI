@@ -1,10 +1,10 @@
-# Source-Free Open-World RF Fingerprint Identification
+# Source-Free Open-World RF Fingerprint Identification via Output Geometry Structuring
 
-This repository contains the PyTorch implementation of the paper: **"Source-Free Open-World RF Fingerprint Identification"**.
+This repository contains the PyTorch implementation of the paper: **"Source-Free Open-World RF Fingerprint Identification via Output Geometry Structuring"**.
 
 ## Overview
 
-We propose a framework to address the **Source-Free Open-World (SF-OW)** problem in RFFI. The method consists of two core components:
+We propose a framework to address the **Blind Source-Free Open-World (SF-OW)** problem in RFFI. The method consists of two core components:
 1.  **Incremental Orthogonal ETF (IO-ETF):** An active geometric prior for structural interference isolation and confusion suppression.
 2.  **Triple-Level Geometric Alignment (TLGA):** A strategy aligning unlabeled streams via semantic OT, manifold anchoring, and subspace retention.
 
